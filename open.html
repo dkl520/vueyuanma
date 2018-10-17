@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        function random(min, max) {
+            return min + Math.floor((max - min + 1) * Math.random());
+        }
+
+        var CalculatorChannel = new MessageChannel();
+        var calculator = CalculatorChannel.port1;
+        var numGenerator = CalculatorChannel.port2;
+
+        calculator.onmessage = function (event) {
+            //console.log("port1收到来自port2的数据：" + event.data);
+            debugger
+            var d = event.data;
+            console.log('num1: ' + d.num1, 'num2: ' + d.num2);
+            var sum = d.num1 + d.num2;
+            calculator.postMessage(sum)
+        }
+
+        numGenerator.onmessage = function (event) {
+            //console.log("port2收到来自port1的数据：" + event.data);
+            console.log('结果为：' + event.data);
+        }
+
+        // 生成数字
+        setInterval(() => {
+            numGenerator.postMessage({
+                num1: random(1, 10),
+                num2: random(1, 10)
+            });
+        }, 1000);
+    </script>
+</body>
+
+</html>
