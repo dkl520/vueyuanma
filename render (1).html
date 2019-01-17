@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- render函数和模板的深度对比 -->
+    <div id="app">
+        <tb-heading :level='2' :list="data">
+
+            <template slot="a">
+                <a href="#">hello world</a>
+            </template>
+            <p>HELLO worldSSS</p>
+            <p>hello</p>
+            <template slot-scope="scope">
+                <h3>
+                    {{scope.row}}
+                </h3>
+            </template>
+
+        </tb-heading>
+    </div>
+    <script>
+        Vue.component("tb-heading", {
+            render(h) {
+                return h('div',
+                    [
+                        this.$slots.default,
+                        h('ul', this.list.map((item, i) => h("li",
+                            [
+                                this.$scopedSlots.default({
+                                    row: item
+                                })
+                            ]
+                            // ,[this.$slots.default[0]]
+                            // 这里的this.$slots.default进行渲染的时候必须接的是vnode构成的数组
+                        ))),
+                        this.$slots.a
+                    ],
+                )
+            },
+            props: {
+                level: {
+                    type: Number,
+                    required: true
+                },
+                list: {
+                    type: Array,
+                    default: () => {}
+                }
+            },
+            mounted() {
+                console.log(this);
+            }
+        });
+        // Vue.component("tb-heading", {
+        //     template: `
+        //     <div> 
+        //         <slot></slot>
+        //           <ul> 
+        //             <li v-for="(v,i) in list">
+        //             <slot :row='v'>  hei</slot>
+        //             </li>
+        //            </ul> 
+        //          <slot name='a'></slot>
+        //     </div>
+        //       `,
+        //     props: {
+        //         level: {
+        //             type: Number,
+        //             required: true
+        //         },
+        //         list: {
+        //             type: Array,
+        //             default: () => []
+        //         }
+        //     },
+        //     mounted() {
+        //         console.log(this)
+        //     }
+        // })
+
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    data: ['zhangsan', 'lisi', 'wanwu', 'zhaoliu', 'tianqi', 'xiaoba']
+                }
+            },
+        });
+    </script>
+</body>
+
+</html>
