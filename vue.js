@@ -737,6 +737,8 @@
     //更新数据 触发依赖 就是触发watcher
     // stabilize the subscriber list first
     var subs = this.subs.slice();
+
+    // 复制watchers数组
     for (var i = 0, l = subs.length; i < l; i++) {
       subs[i].update();
     }
@@ -923,6 +925,7 @@
    * object's property keys into getter/setters that
    * collect dependencies and dispatch updates.
    */
+  // observe==>observer
   var Observer = function Observer(value) {
 
     // value ==data
@@ -930,7 +933,10 @@
     this.dep = new Dep();
     this.vmCount = 0;
     //   每一个  Observer  对象的本身的存储dep value vmcount
+
     def(value, '__ob__', this);
+    // 以下三个方法都可以使得一个对象变得不可扩展：
+    // Object.preventExtensions()、Object.freeze() 以及 Object.seal()
     if (Array.isArray(value)) {
 
       var augment = hasProto ?
@@ -943,7 +949,6 @@
       console.log(this.dep);
     }
   };
-
   /**
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when
@@ -955,18 +960,15 @@
       defineReactive(obj, keys[i]);
     }
   };
-
   /**
    * Observe a list of Array items.
    */
+  // 观测数组
   Observer.prototype.observeArray = function observeArray(items) {
     for (var i = 0, l = items.length; i < l; i++) {
       observe(items[i]);
     }
   };
-
-  // helpers
-
   /**
    * Augment an target Object or Array by intercepting
    * the prototype chain using __proto__
@@ -996,17 +998,22 @@
    * returns the new observer if successfully observed,
    * or the existing observer if the value already has one.
    */
+
+  //  observe=-= Observer
   function observe(value, asRootData) {
     //observe 观测的对象必须是对象
     if (!isObject(value) || value instanceof VNode) {
       return
     }
+
     var ob;
     if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
       ob = value.__ob__;
     } else if (shouldObserve && !isServerRendering() && (Array.isArray(value) || isPlainObject(value)) && Object.isExtensible(value) && !value._isVue) {
       // value 为data
       ob = new Observer(value);
+    // 启动observer
+
     }
     if (asRootData && ob) {
       ob.vmCount++;
@@ -1028,14 +1035,18 @@
   function defineReactive(obj, key, val, customSetter, shallow) {
     var dep = new Dep();
     // 属于闭包操作 
-    // 当调用Object.defineProperty(obj, key, {时候 会对dep对象赋值和触发操作=>即 对watcher进行加入 和触发回调函数等操作
+    // 当调用Object.defineProperty(obj, key, {
+    
+    // 时候 会对dep对象赋值和触发操作=>即 对watcher进行加入 和触发回调函数等操作
     var property = Object.getOwnPropertyDescriptor(obj, key);
+
     if (property && property.configurable === false) {
       return
     }
 
     // cater for pre-defined getter/setters
     var getter = property && property.get;
+
     if (!getter && arguments.length === 2) {
       val = obj[key];
     }
@@ -1047,9 +1058,13 @@
       enumerable: true,
       configurable: true,
       get: function reactiveGetter() {
+        console.log(getter,property);
+        debugger
         var value = getter ? getter.call(obj) : val;
         if (Dep.target) {
+          // 收集当前key值的watcher
           dep.depend();
+
           // 收集依赖 ，即把watcher对象进入dep中  
           if (childOb) {
             childOb.dep.depend();
@@ -1078,6 +1093,7 @@
           val = newVal;
         }
         childOb = !shallow && observe(newVal);
+        debugger
         dep.notify();
       }
     });
@@ -1865,24 +1881,31 @@
   /* istanbul ignore if */
   if (typeof setImmediate !== 'undefined' && isNative(setImmediate) && false) {
     macroTimerFunc = function () {
+
       setImmediate(flushCallbacks);
     };
+
+
   } else if (typeof MessageChannel !== 'undefined' && (
       isNative(MessageChannel) ||
       // PhantomJS
       MessageChannel.toString() === '[object MessageChannelConstructor]'
     )) {
+
+
     var channel = new MessageChannel();
 
     var port = channel.port2;
-
+    
     channel.port1.onmessage = flushCallbacks;
     macroTimerFunc = function () {
+      debugger
       port.postMessage(1);
     };
   } else {
     /* istanbul ignore next */
     macroTimerFunc = function () {
+      debugger
       setTimeout(flushCallbacks, 0);
     };
   }
@@ -1892,6 +1915,7 @@
   if (typeof Promise !== 'undefined' && isNative(Promise)) {
     var p = Promise.resolve();
     microTimerFunc = function () {
+      debugger
       p.then(flushCallbacks);
       // in problematic UIWebViews, Promise.then doesn't completely break, but
       // it can get stuck in a weird state where callbacks are pushed into the
@@ -1920,13 +1944,11 @@
     })
   }
 
-
-
-
   function nextTick(cb, ctx) {
     var _resolve;
     //把 callbac函数放在某个数组中  挨个调用
-    callbacks.push(function () {
+    callbacks.push(
+      function () {
       if (cb) {
         try {
           cb.call(ctx);
@@ -1936,29 +1958,43 @@
       } else if (_resolve) {
         _resolve(ctx);
       }
-    });
+    }
+    );
+
     if (!pending) {
       pending = true;
       if (useMacroTask) {
 
         macroTimerFunc();
+
       } else {
 
         microTimerFunc();
+
       }
     }
     // $flow-disable-line
+
+
+  //   我们知道任务队列并非只有一个队列，在 node 中更为复杂，但总的来说我们可以将其分为
+  //    microtask 和 (macro)task，并且这两个队列的行为还要依据不同浏览器的具体实现去讨论，
+  //    这里我们只讨论被广泛认同和接受的队列执行行为。当调用栈空闲后每次事件循环只会从
+  //   (macro)task 中读取一个任务并执行，而在同一次事件循环内会将 microtask 队列中所有的任务
+  //  全部执行完毕，且要先于 (macro)task。另外 (macro)task 中两个不同的任务之间可能穿插着UI的
+  //  重渲染，那么我们只需要在 microtask 中把所有在UI重渲染之前需要更新的数据全部更新，
+  //  这样只需要一次重渲染就能得到最新的DOM了。恰好 Vue 是一个数据驱动的框架
+  //  ，如果能在UI重渲染之前更新所有数据状态，这对性能的提升是一个很大的帮助，所有要优先选用
+  //   microtask 去更新数据状态而不是 (macro)task，这就是为什么不使用 setTimeout 的原因，
+  //   因为 setTimeout 会将回调放到 (macro)task 队列中而不是 microtask 队列，
+  //   所以理论上最优的选择是使用 Promise，
+  //   当浏览器不支持 Promise 时再降级为 setTimeout。如下是 next-tick.js 文件中的一段代码：
     if (!cb && typeof Promise !== 'undefined') {
       return new Promise(function (resolve) {
         _resolve = resolve;
       })
     }
 
-
   }
-
-
-
 
   /*  */
 
@@ -2573,7 +2609,6 @@
   function eventsMixin(Vue) {
     var hookRE = /^hook:/;
     Vue.prototype.$on = function (event, fn) {
-        debugger
       var this$1 = this;
 
       var vm = this;
@@ -2587,9 +2622,8 @@
         // optimize hook:event cost by using a boolean flag marked at registration
         // instead of a hash lookup
         console.log(hookRE.test(event));
-        debugger
+
         if (hookRE.test(event)) {
-          debugger
           vm._hasHookEvent = true;
         }
       }
@@ -2772,13 +2806,11 @@
   }
 
   function lifecycleMixin(Vue) {
-
-
     Vue.prototype._update = function (vnode, hydrating) {
-
+       // vm._render 函数的作用是调用 vm.$options.render 函数并返回生成的虚拟节点(vnode)
+        // vm._update 函数的作用是把 vm._render 函数生成的虚拟节点渲染成真正的 DOM
       var vm = this;
       if (vm._isMounted) {
-        debugger
         callHook(vm, 'beforeUpdate');
       }
       var prevEl = vm.$el;
@@ -2871,6 +2903,7 @@
   }
   // 完整版的
   function mountComponent(vm, el, hydrating) {
+
     vm.$el = el;
     if (!vm.$options.render) {
       vm.$options.render = createEmptyVNode; {
@@ -2891,10 +2924,12 @@
         }
       }
     }
-    callHook(vm, 'beforeMount'); 
+    callHook(vm, 'beforeMount');
 
     var updateComponent;
     /* istanbul ignore if */
+    // updateComponent 函数的作用就是：把渲染函数生成的虚拟DOM渲染成真正的DOM，
+    // 其实在 vm._update 内部是通过虚拟DOM的补丁算法(patch)来完成的，这些我们放到后面的具体章节去讲。
     if ("development" !== 'production' && config.performance && mark) {
       updateComponent = function () {
         var name = vm._name;
@@ -2914,15 +2949,23 @@
       };
     } else {
       updateComponent = function () {
+
+        // vm._render 函数的作用是调用 vm.$options.render 函数并返回生成的虚拟节点(vnode)
         // vm._update 函数的作用是把 vm._render 函数生成的虚拟节点渲染成真正的 DOM
+        debugger
         vm._update(vm._render(), hydrating);
       };
     }
-
     // we set this to vm._watcher inside the watcher's constructor
     // since the watcher's initial patch may call $forceUpdate (e.g. inside child
     // component's mounted hook), which relies on vm._watcher being already defined
+    debugger
     new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */ );
+    // updateComponent  相当于 expOrfn
+
+
+    // 第一次触发
+
     hydrating = false;
 
     // manually mounted instance, call mounted on self
@@ -2933,14 +2976,9 @@
     }
     return vm
   }
+  // 更新子组件
 
-  function updateChildComponent(
-    vm,
-    propsData,
-    listeners,
-    parentVnode,
-    renderChildren
-  ) {
+  function updateChildComponent(vm, propsData, listeners, parentVnode, renderChildren) {
     {
       isUpdatingChildComponent = true;
     }
@@ -3056,19 +3094,13 @@
         }
       }
     }
-    debugger
     if (vm._hasHookEvent) {
-      debugger
       vm.$emit('hook:' + hook);
     }
     popTarget();
   }
-
   /*  */
-
-
   var MAX_UPDATE_COUNT = 100;
-
   var queue = [];
   var activatedChildren = [];
   var has = {};
@@ -3076,7 +3108,6 @@
   var waiting = false;
   var flushing = false;
   var index = 0;
-
   /**
    * Reset the scheduler's state.
    */
@@ -3087,14 +3118,13 @@
     }
     waiting = flushing = false;
   }
-
   /**
    * Flush both queues and run the watchers.
    */
   function flushSchedulerQueue() {
+    debugger
     flushing = true;
     var watcher, id;
-
     // Sort queue before flush.
     // This ensures that:
     // 1. Components are updated from parent to child. (because parent is always
@@ -3106,7 +3136,6 @@
     queue.sort(function (a, b) {
       return a.id - b.id;
     });
-
     // do not cache length because more watchers might be pushed
     // as we run existing watchers
     for (index = 0; index < queue.length; index++) {
@@ -3114,6 +3143,7 @@
       id = watcher.id;
       has[id] = null;
       watcher.run();
+
       // in dev build, check and stop circular updates.
       if ("development" !== 'production' && has[id] != null) {
         circular[id] = (circular[id] || 0) + 1;
@@ -3182,7 +3212,10 @@
    * Jobs with duplicate IDs will be skipped unless it's
    * pushed when the queue is being flushed.
    */
+
   function queueWatcher(watcher) {
+    // queueWatcher 函数的作用就是我们前面讲到过的，
+    // 它将观察者放到一个队列中等待所有突变完成之后统一执行更新。
     var id = watcher.id;
     if (has[id] == null) {
       has[id] = true;
@@ -3200,6 +3233,8 @@
       // queue the flush
       if (!waiting) {
         waiting = true;
+        // 对响应的修改属性进行异步处理
+
         nextTick(flushSchedulerQueue);
       }
     }
@@ -3214,8 +3249,11 @@
    * and fires callback when the expression value changes.
    * This is used for both the $watch() api and directives.
    */
+  // computed  data  $watch都会触发 watcher对象.以上数据都需要
+  // Dep的收集对象
   var Watcher = function Watcher(vm, expOrFn, cb, options, isRenderWatcher) {
     this.vm = vm;
+    // isRenderWatcher 标识着是否是渲染函数的观察者
     if (isRenderWatcher) {
       vm._watcher = this;
     }
@@ -3229,6 +3267,8 @@
       this.lazy = !!options.lazy;
       // 用来告诉观察者当数据变化时是否同步求值并执行回调
       this.sync = !!options.sync;
+
+
     } else {
       this.deep = this.user = this.lazy = this.sync = false;
     }
@@ -3239,14 +3279,17 @@
     this.deps = [];
     this.newDeps = [];
     this.expp = expOrFn;
+
     this.depIds = new _Set();
     this.newDepIds = new _Set();
     this.expression = expOrFn.toString();
     // parse expression for getter
+    
     if (typeof expOrFn === 'function') {
-      this.getter = expOrFn;
+    this.getter = expOrFn;
     } else {
       this.getter = parsePath(expOrFn);
+      // 这里想当于调用了get收集器
       if (!this.getter) {
         this.getter = function () {};
         "development" !== 'production' && warn(
@@ -3258,6 +3301,7 @@
       }
     }
     console.log(expOrFn);
+    // this.value 属性保存着被观察目标的值
     this.value = this.lazy ?
       undefined :
       this.get();
@@ -3268,7 +3312,11 @@
    * Evaluate the getter, and re-collect dependencies.
    */
   Watcher.prototype.get = function get() {
+    // getzghutyao
+    // 法，它的作用可以用两个字描述：求值。求值的目的有两个，第一个是能够触发访问器属性的
+    //  get 拦截器函数，第二个是能够获得被观察目标的值
     pushTarget(this);
+
     //  把当前的watcher设置为dep.target;
     var value;
     var vm = this.vm;
@@ -3306,7 +3354,6 @@
       }
     }
   };
-
   /**
    * Clean up for dependency collection.
    */
@@ -3336,6 +3383,7 @@
   // 更新数据 触发依赖
   Watcher.prototype.update = function update() {
     /* istanbul ignore else */
+    debugger
     if (this.lazy) {
       this.dirty = true;
       // 表示数据更新；
@@ -3345,11 +3393,14 @@
       queueWatcher(this);
     }
   };
+  // 触发依赖
+
 
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
    */
+  // 触发回调函数
   Watcher.prototype.run = function run() {
     if (this.active) {
       var value = this.get();
@@ -3373,6 +3424,7 @@
           }
         } else {
           this.cb.call(this.vm, value, oldValue);
+          //触发回调函数
         }
       }
     }
@@ -3456,6 +3508,7 @@
     }
     if (opts.data) {
       initData(vm);
+
     } else {
       observe(vm._data = {}, true /* asRootData */ );
     }
@@ -3519,10 +3572,10 @@
   // initdata obseve Observer;
   function initData(vm) {
     var data = vm.$options.data;
-    data = vm._data = typeof data === 'function' ?
-      getData(data, vm) :
-      data || {};
+
+    data = vm._data = typeof data === 'function' ?  getData(data, vm) : data || {};
     // 把真实的值都绑定到_data这里作为 代理对象
+    // 这里的data已经是真实的data数据对象了
     if (!isPlainObject(data)) {
       data = {};
       "development" !== 'production' && warn(
@@ -3537,31 +3590,50 @@
     var props = vm.$options.props;
     var methods = vm.$options.methods;
     var i = keys.length;
+
+
     while (i--) {
       var key = keys[i]; {
+
         if (methods && hasOwn(methods, key)) {
           warn(
             ("Method \"" + key + "\" has already been defined as a data property."),
             vm
           );
+          // ，提示开发者：你定义在 methods 对象中的函数名称已经被作为 data 对象中某个数据字段的 key 了，
+          // 你应该换一个函数名字。为什么要这么做呢？如下：
         }
+
+        // 同样的 Vue 实例对象除了代理访问 data 数据和 methods 中的方法之外，还代理访问了 props 中的数据，
+        // 所以上面这段代码的作用是如果发现 data 数据字段的 key 已经在 props 中有定义了，那么就会打印警告。
+        // 另外这里有一个优先级的关系：props优先级 > methods优先级 > data优先级。即如果一个 key 在 props 
+        // 中有定义了那么就不能在
+        //  data 和 methods 中出现了；如果一个 key 在 data 中出现了那么就不能在 methods 中出现了。
       }
       if (props && hasOwn(props, key)) {
         "development" !== 'production' && warn(
           "The data property \"" + key + "\" is already declared as a prop. " +
           "Use prop default value instead.",
           vm
+          // 在这个例子中无论是定义在 data 中的数据对象，还是定义在 methods 对象中的函数，
+          // 都可以通过实例对象代理访问。所以当 data 数据对象中的 key 与 methods 对象中的 key 冲突时，
+          // 岂不就会产生覆盖掉的现象，所以为了避免覆盖 Vue 是不允许在 methods 中定义与 data 字段的 key 重名的函数的。
+          // 而这个工作就是在 while 循环中第一个语句块中的代码去完成的
+          // 而这个工作就是在 while 循环中第一个语句块中的代码去完成的
         );
       } else if (!isReserved(key)) {
         proxy(vm, "_data", key);
       }
     }
     // observe data
-    observe(data, true /* asRootData */ );
+    // MVVM的起始之源
     // 对data实现观测
+    // 在这里就对data添加了访问器属性
+    observe(data, true /* asRootData */ );
   }
 
   function getData(data, vm) {
+
     // #7573 disable dep collection when invoking data getters
     pushTarget();
     try {
@@ -3580,6 +3652,7 @@
 
   function initComputed(vm, computed) {
     // $flow-disable-line
+    //计算属性没有访问器属性
     var watchers = vm._computedWatchers = Object.create(null);
     // computed properties are just getters during SSR
     var isSSR = isServerRendering();
@@ -3599,7 +3672,9 @@
       // component-defined computed properties are already defined on the
       // component prototype. We only need to define computed properties defined
       // at instantiation here.
+      debugger
       if (!(key in vm)) {
+        //对计算属性添加访问器属性
         defineComputed(vm, key, userDef);
       } else {
         if (key in vm.$data) {
@@ -3613,7 +3688,6 @@
 
   function defineComputed(target, key, userDef) {
     var shouldCache = !isServerRendering();
-
     if (typeof userDef === 'function') {
       sharedPropertyDefinition.get = shouldCache ?
         createComputedGetter(key) :
@@ -3642,7 +3716,7 @@
   }
 
   function createComputedGetter(key) {
-    return function computedGetter() {
+    return function computedGetter(){
       var watcher = this._computedWatchers && this._computedWatchers[key];
       if (watcher) {
         if (watcher.dirty) {
@@ -3697,6 +3771,8 @@
     }
   }
   // initwatch createWatcher $watch watcher
+// 定义
+
   function createWatcher(vm, expOrFn, handler, options) {
     if (isPlainObject(handler)) {
       options = handler;
@@ -3705,6 +3781,7 @@
     if (typeof handler === 'string') {
       handler = vm[handler];
     }
+    debugger
     return vm.$watch(expOrFn, handler, options)
   }
 
@@ -3737,6 +3814,7 @@
     Vue.prototype.$set = set;
     Vue.prototype.$delete = del;
     // z$watch的玩法
+    
     Vue.prototype.$watch = function (expOrFn, cb, options) {
       var vm = this;
       if (isPlainObject(cb)) {
@@ -3744,7 +3822,7 @@
       }
       options = options || {};
       options.user = true;
-
+      debugger
       var watcher = new Watcher(vm, expOrFn, cb, options);
       if (options.immediate) {
         cb.call(vm, watcher.value);
@@ -3829,10 +3907,7 @@
   /**
    * Runtime helper for rendering v-for lists.
    */
-  function renderList(
-    val,
-    render
-  ) {
+  function renderList(val, render) {
     var ret, i, l, keys, key;
     if (Array.isArray(val) || typeof val === 'string') {
       ret = new Array(val.length);
@@ -3857,18 +3932,11 @@
     }
     return ret
   }
-
   /*  */
-
   /**
    * Runtime helper for rendering <slot>
    */
-  function renderSlot(
-    name,
-    fallback,
-    props,
-    bindObject
-  ) {
+  function renderSlot(name, fallback, props, bindObject) {
     var scopedSlotFn = this.$scopedSlots[name];
     var nodes;
     if (scopedSlotFn) { // scoped slot
@@ -3917,9 +3985,7 @@
   function resolveFilter(id) {
     return resolveAsset(this.$options, 'filters', id, true) || identity
   }
-
   /*  */
-
   function isKeyNotMatch(expect, actual) {
     if (Array.isArray(expect)) {
       return expect.indexOf(actual) === -1
@@ -3927,7 +3993,6 @@
       return expect !== actual
     }
   }
-
   /**
    * Runtime helper for checking keyCodes from config.
    * exposed as Vue.prototype._k
@@ -3955,13 +4020,7 @@
   /**
    * Runtime helper for merging v-bind="object" into a VNode's data.
    */
-  function bindObjectProps(
-    data,
-    tag,
-    value,
-    asProp,
-    isSync
-  ) {
+  function bindObjectProps(data, tag, value, asProp, isSync) {
     if (value) {
       if (!isObject(value)) {
         "development" !== 'production' && warn(
@@ -4009,10 +4068,7 @@
   /**
    * Runtime helper for rendering static trees.
    */
-  function renderStatic(
-    index,
-    isInFor
-  ) {
+  function renderStatic(index, isInFor) {
     var cached = this._staticTrees || (this._staticTrees = []);
     var tree = cached[index];
     // if has already-rendered static tree and not inside v-for,
@@ -4034,20 +4090,12 @@
    * Runtime helper for v-once.
    * Effectively it means marking the node as static with a unique key.
    */
-  function markOnce(
-    tree,
-    index,
-    key
-  ) {
+  function markOnce(tree, index, key) {
     markStatic(tree, ("__once__" + index + (key ? ("_" + key) : "")), true);
     return tree
   }
 
-  function markStatic(
-    tree,
-    key,
-    isOnce
-  ) {
+  function markStatic(tree, key, isOnce) {
     if (Array.isArray(tree)) {
       for (var i = 0; i < tree.length; i++) {
         if (tree[i] && typeof tree[i] !== 'string') {
@@ -4064,9 +4112,7 @@
     node.key = key;
     node.isOnce = isOnce;
   }
-
   /*  */
-
   function bindObjectListeners(data, value) {
     if (value) {
       if (!isPlainObject(value)) {
@@ -4108,13 +4154,7 @@
 
   /*  */
 
-  function FunctionalRenderContext(
-    data,
-    props,
-    children,
-    parent,
-    Ctor
-  ) {
+  function FunctionalRenderContext(data, props, children, parent, Ctor) {
     var options = Ctor.options;
     // ensure the createElement function in functional components
     // gets a unique context - this is necessary for correct named slot check
@@ -4685,11 +4725,11 @@
     };
     // vm._render 函数的作用是调用 vm.$options.render 函数并返回生成的虚拟节点(vnode)
     Vue.prototype._render = function () {
+
       var vm = this;
       var ref = vm.$options;
       var render = ref.render;
       var _parentVnode = ref._parentVnode;
-
       // reset _rendered flag on slots for duplicate slot check
       {
         for (var key in vm.$slots) {
@@ -4719,13 +4759,17 @@
         /* istanbul ignore else */
         {
           if (vm.$options.renderError) {
+
             try {
               vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e);
             } catch (e) {
+
               handleError(e, vm, "renderError");
               vnode = vm._vnode;
             }
+
           } else {
+
             vnode = vm._vnode;
           }
         }
@@ -4817,7 +4861,7 @@
 
       if (vm.$options.el) {
         // 果然￥el方法就是调用$mount
-
+        debugger
         vm.$mount(vm.$options.el);
       }
       // 挂载DOM
@@ -4905,12 +4949,16 @@
   }
 
   function Vue(options) {
+
     if ("development" !== 'production' &&
       !(this instanceof Vue)
     ) {
       warn('Vue is a constructor and should be called with the `new` keyword');
     }
+
+
     this._init(options);
+
     // new  过程的初始化开始
   }
   //万物起源
@@ -4922,6 +4970,7 @@
   eventsMixin(Vue);
   // 添加事件通信机制
   lifecycleMixin(Vue);
+
 
   renderMixin(Vue);
   // vue 对象构造前的执行
@@ -8868,7 +8917,11 @@
   //  公共的mount方法
   Vue.prototype.$mount = function (el, hydrating) {
     el = el && inBrowser ? query(el) : undefined;
+  
     return mountComponent(this, el, hydrating)
+    // $mount 函数的最终地址
+  
+  // 挂载组件的时候触发
   };
 
   // devtools global hook
@@ -11271,6 +11324,7 @@
   var mount = Vue.prototype.$mount;
   // 开发版的mount判断是否有template
   Vue.prototype.$mount = function (el, hydrating) {
+    //增加了模板编译的能力
     el = el && query(el);
     /* istanbul ignore if */
     if (el === document.body || el === document.documentElement) {
@@ -11280,11 +11334,12 @@
       return this
     }
     var options = this.$options;
+
     // resolve template/el and convert to render function
+    //是否包含渲染函数
     if (!options.render) {
       var template = options.template;
       if (template) {
-
         if (typeof template === 'string') {
           if (template.charAt(0) === '#') {
             template = idToTemplate(template);
@@ -11320,9 +11375,6 @@
           delimiters: options.delimiters,
           comments: options.comments
         }, this);
-
-
-
         // 通过template生成 render函数和静态的
         var render = ref.render;
         var staticRenderFns = ref.staticRenderFns;
@@ -11336,8 +11388,7 @@
         }
       }
     }
-
-
+    debugger
     return mount.call(this, el, hydrating)
   };
 

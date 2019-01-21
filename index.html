@@ -24,10 +24,12 @@
     </div>
 
     <script src="vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
     <!-- <script src="mixin.js"></script>
     <script src="extendss.js"></script> -->
     <script>
         var vm = new Vue({
+            el:"#app",
             data: {
                 test: 1,
                 tt: 2,
@@ -79,20 +81,20 @@
             },
 
             created() {
-                this.$on("hook:",()=>111);
                 console.log("hello")
             },
             methods: {
                 change() {
-                    this.tt++;
+                    // this.tt++;
                     this.test = 33;
-                    console.log(this.tt, "ddsdsds");
+                    // console.log(this.tt, "ddsdsds");
                     // this.depps.a.c=33;
                     // this.arr.splice(0, 1, 2);
 
                 }
             }
-        }).$mount("#app");
+        })
+        // .$mount("#app");
     </script>
 </body>
 

@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+    <script src="vue.js"></script>
     <title>Document</title>
 </head>
 
@@ -27,33 +28,7 @@
         </tb-heading>
     </div>
     <script>
-        Vue.component("tb-heading", {
-            render(h) {
-                return h('div', {}, [
-                    h('h' + this.level, this.list.map((item, i) => h("li" [
-                            this.$scopeSlots.default({
-                                row: item
-                            })
-                        ]
-                        // ,[this.$slots.default[0]]
-                        // 这里的this.$slots.default进行渲染的时候必须接的是vnode构成的数组
-                    )))
-                ])
-            },
-            props: {
-                level: {
-                    type: Number,
-                    required: true
-                },
-                list: {
-                    type: Array,
-                    default: () => {}
-                }
-            },
-            mounted() {
-                console.log(this.$slots.default);
-            }
-        });
+   
         Vue.component("tb-heading", {
             template: `
             <div> 
