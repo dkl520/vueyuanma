@@ -17,7 +17,8 @@
             <li>{{val}}</li>
         </ul>
         {{dd}}
-        {{tt}}
+        <!-- {{tt}} -->
+        {{test}}
         <!-- {{test}}
         {{depps.a.c}} -->
         <button @click="change">add</button>
@@ -86,13 +87,23 @@
             methods: {
                 change() {
                     // this.tt++;
-                    this.test = 33;
+                    // this.test = 33;
+                    this.$nextTick(()=>{
+                          this.test=34;
+                    })
+                    let day=new Date().getDay();
+
                     // console.log(this.tt, "ddsdsds");
                     // this.depps.a.c=33;
                     // this.arr.splice(0, 1, 2);
 
                 }
             }
+        })
+        new Promise((res,rej)=>{
+             res("111")
+        }).then((val)=>{
+             console.log(val)
         })
         // .$mount("#app");
     </script>

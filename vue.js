@@ -766,7 +766,7 @@
   }
 
   /*  */
-
+// vnode是一个包含多个属性的对象
   var VNode = function VNode(
     tag,
     data,
@@ -933,12 +933,10 @@
     this.dep = new Dep();
     this.vmCount = 0;
     //   每一个  Observer  对象的本身的存储dep value vmcount
-
     def(value, '__ob__', this);
     // 以下三个方法都可以使得一个对象变得不可扩展：
     // Object.preventExtensions()、Object.freeze() 以及 Object.seal()
     if (Array.isArray(value)) {
-
       var augment = hasProto ?
         protoAugment :
         copyAugment;
@@ -964,11 +962,13 @@
    * Observe a list of Array items.
    */
   // 观测数组
+  
   Observer.prototype.observeArray = function observeArray(items) {
     for (var i = 0, l = items.length; i < l; i++) {
       observe(items[i]);
     }
   };
+
   /**
    * Augment an target Object or Array by intercepting
    * the prototype chain using __proto__
@@ -1059,12 +1059,11 @@
       configurable: true,
       get: function reactiveGetter() {
         console.log(getter,property);
-        debugger
         var value = getter ? getter.call(obj) : val;
         if (Dep.target) {
           // 收集当前key值的watcher
           dep.depend();
-
+          
           // 收集依赖 ，即把watcher对象进入dep中  
           if (childOb) {
             childOb.dep.depend();
@@ -1077,6 +1076,7 @@
         return value
       },
       set: function reactiveSetter(newVal) {
+
         var value = getter ? getter.call(obj) : val;
         // console.log(dep);
         /* eslint-disable no-self-compare */
@@ -1095,6 +1095,9 @@
         childOb = !shallow && observe(newVal);
         debugger
         dep.notify();
+// notify=> update()=>queuewatcher=> nexttick=>run函数
+
+
       }
     });
   }
@@ -1859,7 +1862,9 @@
     callbacks.length = 0;
     for (var i = 0; i < copies.length; i++) {
       copies[i]();
+
     }
+    // 执行回调函数
   }
 
   // Here we have async deferring wrappers using both microtasks and (macro) tasks.
@@ -1872,6 +1877,9 @@
   // needed (e.g. in event handlers attached by v-on).
   var microTimerFunc;
   var macroTimerFunc;
+  // 还对外暴露了 withMacroTask 函数，它是对函数做一层包装，确保函数执行过程中对数据任意的修改，
+  // 触发变化执行 nextTick 的时候强制走 macroTimerFunc。
+  // 比如对于一些 DOM 交互事件，如 v-on 绑定的事件回调函数的处理，会强制走 macro task。
   var useMacroTask = false;
 
   // Determine (macro) task defer implementation.
@@ -1888,7 +1896,6 @@
 
   } else if (typeof MessageChannel !== 'undefined' && (
       isNative(MessageChannel) ||
-      // PhantomJS
       MessageChannel.toString() === '[object MessageChannelConstructor]'
     )) {
 
@@ -1899,23 +1906,19 @@
     
     channel.port1.onmessage = flushCallbacks;
     macroTimerFunc = function () {
-      debugger
       port.postMessage(1);
     };
   } else {
     /* istanbul ignore next */
     macroTimerFunc = function () {
-      debugger
       setTimeout(flushCallbacks, 0);
     };
   }
-
   // Determine microtask defer implementation.
   /* istanbul ignore next, $flow-disable-line */
   if (typeof Promise !== 'undefined' && isNative(Promise)) {
     var p = Promise.resolve();
     microTimerFunc = function () {
-      debugger
       p.then(flushCallbacks);
       // in problematic UIWebViews, Promise.then doesn't completely break, but
       // it can get stuck in a weird state where callbacks are pushed into the
@@ -1995,6 +1998,10 @@
     }
 
   }
+
+
+  // 在浏览器环境中，常见的 macro task 有 setTimeout、MessageChannel、postMessage、
+  // setImmediate；常见的 micro task 有 MutationObsever 和 Promise.then。
 
   /*  */
 
@@ -2823,11 +2830,7 @@
       // based on the rendering backend used.
       if (!prevVnode) {
         // initial render
-        vm.$el = vm.__patch__(
-          vm.$el, vnode, hydrating, false /* removeOnly */ ,
-          vm.$options._parentElm,
-          vm.$options._refElm
-        );
+        vm.$el = vm.__patch__( vm.$el, vnode, hydrating, false, vm.$options._parentElm,vm.$options._refElm);
         // no need for the ref nodes after initial patch
         // this prevents keeping a detached DOM tree in memory (#5851)
         vm.$options._parentElm = vm.$options._refElm = null;
@@ -2903,10 +2906,11 @@
   }
   // 完整版的
   function mountComponent(vm, el, hydrating) {
-
+    
     vm.$el = el;
     if (!vm.$options.render) {
-      vm.$options.render = createEmptyVNode; {
+      vm.$options.render = createEmptyVNode;
+       {
         /* istanbul ignore if */
         if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
           vm.$options.el || el) {
@@ -2949,17 +2953,15 @@
       };
     } else {
       updateComponent = function () {
-
-        // vm._render 函数的作用是调用 vm.$options.render 函数并返回生成的虚拟节点(vnode)
-        // vm._update 函数的作用是把 vm._render 函数生成的虚拟节点渲染成真正的 DOM
-        debugger
+         // vm._render 函数的作用是调用 vm.$options.render 函数并返回生成的虚拟节点(vnode)
+         // vm._u./pdate 函数的作用是把 vm._render 函数生成的虚拟节点渲染成真正的 DOM
+         // vue.prototype._update()
         vm._update(vm._render(), hydrating);
       };
     }
     // we set this to vm._watcher inside the watcher's constructor
     // since the watcher's initial patch may call $forceUpdate (e.g. inside child
     // component's mounted hook), which relies on vm._watcher being already defined
-    debugger
     new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */ );
     // updateComponent  相当于 expOrfn
 
@@ -3122,7 +3124,6 @@
    * Flush both queues and run the watchers.
    */
   function flushSchedulerQueue() {
-    debugger
     flushing = true;
     var watcher, id;
     // Sort queue before flush.
@@ -3160,7 +3161,7 @@
         }
       }
     }
-
+      
     // keep copies of post queues before resetting state
     var activatedQueue = activatedChildren.slice();
     var updatedQueue = queue.slice();
@@ -3316,7 +3317,7 @@
     // 法，它的作用可以用两个字描述：求值。求值的目的有两个，第一个是能够触发访问器属性的
     //  get 拦截器函数，第二个是能够获得被观察目标的值
     pushTarget(this);
-
+      
     //  把当前的watcher设置为dep.target;
     var value;
     var vm = this.vm;
@@ -3383,13 +3384,15 @@
   // 更新数据 触发依赖
   Watcher.prototype.update = function update() {
     /* istanbul ignore else */
-    debugger
     if (this.lazy) {
       this.dirty = true;
-      // 表示数据更新；
     } else if (this.sync) {
+      // 表示数据同步更新；
       this.run();
+
+      
     } else {
+      // 加入队列  异步更新。。
       queueWatcher(this);
     }
   };
@@ -3672,7 +3675,6 @@
       // component-defined computed properties are already defined on the
       // component prototype. We only need to define computed properties defined
       // at instantiation here.
-      debugger
       if (!(key in vm)) {
         //对计算属性添加访问器属性
         defineComputed(vm, key, userDef);
@@ -3781,7 +3783,6 @@
     if (typeof handler === 'string') {
       handler = vm[handler];
     }
-    debugger
     return vm.$watch(expOrFn, handler, options)
   }
 
@@ -3822,7 +3823,6 @@
       }
       options = options || {};
       options.user = true;
-      debugger
       var watcher = new Watcher(vm, expOrFn, cb, options);
       if (options.immediate) {
         cb.call(vm, watcher.value);
@@ -4247,6 +4247,7 @@
     if (vnode instanceof VNode) {
       return cloneAndMarkFunctionalResult(vnode, data, renderContext.parent, options)
     } else if (Array.isArray(vnode)) {
+
       var vnodes = normalizeChildren(vnode) || [];
       var res = new Array(vnodes.length);
       for (var i = 0; i < vnodes.length; i++) {
@@ -4370,13 +4371,7 @@
 
   var hooksToMerge = Object.keys(componentVNodeHooks);
 
-  function createComponent(
-    Ctor,
-    data,
-    context,
-    children,
-    tag
-  ) {
+  function createComponent(Ctor,data,context,children,tag) {
     if (isUndef(Ctor)) {
       return
     }
@@ -4478,10 +4473,8 @@
     return vnode
   }
 
-  function createComponentInstanceForVnode(
-    vnode, // we know it's MountedComponentVNode but flow doesn't
-    parent, // activeInstance in lifecycle state
-    parentElm,
+  function createComponentInstanceForVnode(vnode,  parent, // activeInstance in lifecycle state
+ parentElm,
     refElm
   ) {
     var options = {
@@ -4529,14 +4522,7 @@
 
   // wrapper function for providing a more flexible interface
   // without getting yelled at by flow
-  function createElement(
-    context,
-    tag,
-    data,
-    children,
-    normalizationType,
-    alwaysNormalize
-  ) {
+  function createElement( context,tag,data,children,normalizationType,alwaysNormalize ) {
     if (Array.isArray(data) || isPrimitive(data)) {
       normalizationType = children;
       children = data;
@@ -4552,13 +4538,7 @@
   // 当tag不是一个String类型的时候代表tag是一个组件的构造类，直接用new VNode创建。
   // 当tag是String类型的时候，如果是保留标签，则用new VNode创建一个VNode实例
   // ，如果在vm的option的components找得到该tag，代表这是一个组件，否则统一用new VNode创建。
-  function _createElement(
-    context,
-    tag,
-    data,
-    children,
-    normalizationType
-  ) {
+  function _createElement( context,  tag, data,children, normalizationType) {
     if (isDef(data) && isDef((data).__ob__)) {
       "development" !== 'production' && warn(
         "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
@@ -4619,10 +4599,7 @@
         // unknown or unlisted namespaced elements
         // check at runtime because it may get assigned a namespace when its
         // parent normalizes children
-        vnode = new VNode(
-          tag, data, children,
-          undefined, undefined, context
-        );
+        vnode = new VNode(tag, data, children,undefined, undefined, context );
       }
     } else {
       // direct component options / constructor
@@ -4748,7 +4725,7 @@
       // render self
       var vnode;
       // createElement创见节点
-
+         debugger
 
       try {
         vnode = render.call(vm._renderProxy, vm.$createElement);
@@ -4861,7 +4838,6 @@
 
       if (vm.$options.el) {
         // 果然￥el方法就是调用$mount
-        debugger
         vm.$mount(vm.$options.el);
       }
       // 挂载DOM
@@ -5797,11 +5773,7 @@
 
     var creatingElmInVPre = 0;
 
-    function createElm(
-      vnode,
-      insertedVnodeQueue,
-      parentElm,
-      refElm,
+    function createElm( vnode,insertedVnodeQueue, parentElm, refElm,
       nested,
       ownerArray,
       index
@@ -6365,13 +6337,15 @@
     }
 
     return function patch(oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
+
       if (isUndef(vnode)) {
         if (isDef(oldVnode)) {
-
           invokeDestroyHook(oldVnode);
         }
+
         return
       }
+      debugger
 
       var isInitialPatch = false;
       var insertedVnodeQueue = [];
@@ -6380,6 +6354,7 @@
         isInitialPatch = true;
         createElm(vnode, insertedVnodeQueue, parentElm, refElm);
       } else {
+
         var isRealElement = isDef(oldVnode.nodeType);
         if (!isRealElement && sameVnode(oldVnode, vnode)) {
           // patch existing root node
@@ -8917,7 +8892,7 @@
   //  公共的mount方法
   Vue.prototype.$mount = function (el, hydrating) {
     el = el && inBrowser ? query(el) : undefined;
-  
+  // 所以说组件DOM的挂载在$mount中发生 
     return mountComponent(this, el, hydrating)
     // $mount 函数的最终地址
   
@@ -9501,10 +9476,13 @@
   /**
    * Convert HTML string to AST.
    */
-  function parse(
-    template,
-    options
-  ) {
+  // 吧html字符串转换成ast语法树
+  // 它主要的目的是将便于人编写、阅读、维护的高级计算机语言所写作的 源代码 程序，
+  // 翻译为计算机能解读、运行的低阶机器语言的程序。源代码 一般为高阶语言（High-level language），
+  // 如Pascal、C、C++、C# 、Java等，而目标语言则是汇编语言或目标机器的目标代码（Object code）。
+  // 在说 parser 之前，我们先了解一下编译器的概念，简单的讲编译器就是将 源代码 转换成 目标代码 的工具。
+  function parse(template, options) {
+    debugger
     warn$2 = options.warn || baseWarn;
 
     platformIsPreTag = options.isPreTag || no;
@@ -10240,7 +10218,11 @@
     getTagNamespace: getTagNamespace,
     staticKeys: genStaticKeys(modules$1)
   };
+//baseOptions原型
 
+
+
+  // 
   /*  */
 
   var isStaticKey;
@@ -10575,6 +10557,8 @@
       staticRenderFns: state.staticRenderFns
     }
   }
+
+  // compile最终生成地址
 
   function genElement(el, state) {
     if (el.staticRoot && !el.staticProcessed) {
@@ -11130,8 +11114,12 @@
     }
   }
 
+
+
+
   function createCompileToFunctionFn(compile) {
     var cache = Object.create(null);
+
     return function compileToFunctions(template, options, vm) {
       options = extend({}, options);
       var warn$$1 = options.warn || warn;
@@ -11167,7 +11155,7 @@
 
       // compile
       var compiled = compile(template, options);
-
+        debugger
       // check compilation errors/tips
       {
         if (compiled.errors && compiled.errors.length) {
@@ -11189,10 +11177,18 @@
       // turn code into functions
       var res = {};
       var fnGenErrors = [];
+
       res.render = createFunction(compiled.render, fnGenErrors);
+
       res.staticRenderFns = compiled.staticRenderFns.map(function (code) {
         return createFunction(code, fnGenErrors)
       });
+    // 返回一个由对象构成的数组s
+
+      // render函数的生成地址
+
+
+      
 
       // check function generation errors.
       // this should only happen if there is a bug in the compiler itself.
@@ -11223,7 +11219,7 @@
   function createCompilerCreator(baseCompile) {
 
     return function createCompiler(baseOptions) {
-
+      //创见编译器
       function compile(template, options) {
         var finalOptions = Object.create(baseOptions);
         var errors = [];
@@ -11255,7 +11251,6 @@
 
         var compiled = baseCompile(template, finalOptions);
 
-
         {
           errors.push.apply(errors, detectErrors(compiled.ast));
         }
@@ -11267,7 +11262,6 @@
         compile: compile,
         compileToFunctions: createCompileToFunctionFn(compile)
       }
-
     }
   }
 
@@ -11281,22 +11275,29 @@
     // 以函数为参数进行传递
     function baseCompile(template, options) {
       var ast = parse(template.trim(), options);
+      // ast的生成地址
+      debugger
       if (options.optimize !== false) {
         optimize(ast, options);
       }
       var code = generate(ast, options);
+        debugger
+
+      console.log(code)
+
+      // render函数诞生地
       return {
         ast: ast,
         render: code.render,
         staticRenderFns: code.staticRenderFns
       }
     });
+/*  */
+var ref$1 = createCompiler(baseOptions);
+// 创建编译器
+//编译器的开始
 
-  /*  */
-  var ref$1 = createCompiler(baseOptions);
-  // 创建编译器
-  //编译器的开始
-  var compileToFunctions = ref$1.compileToFunctions;
+var compileToFunctions = ref$1.compileToFunctions;
 
   /*  */
 
@@ -11369,16 +11370,19 @@
           mark('compile');
         }
         // 调用编译器
+        // compileToFunctions=>相当于编译器
         var ref = compileToFunctions(template, {
           shouldDecodeNewlines: shouldDecodeNewlines,
           shouldDecodeNewlinesForHref: shouldDecodeNewlinesForHref,
           delimiters: options.delimiters,
           comments: options.comments
         }, this);
+        debugger
         // 通过template生成 render函数和静态的
         var render = ref.render;
         var staticRenderFns = ref.staticRenderFns;
 
+        // render函数正式赋值的地方
         options.render = render;
         options.staticRenderFns = staticRenderFns;
         /* istanbul ignore if */
@@ -11388,7 +11392,6 @@
         }
       }
     }
-    debugger
     return mount.call(this, el, hydrating)
   };
 
