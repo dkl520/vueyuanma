@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="./vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+
+    <script>
+
+
+        const Sub = Vue.extend({
+            // 检测 test 的变化
+            watch: {
+                test: function () {
+                    console.log('extend: test change')
+                }
+            }
+        })
+
+        // 使用子类创建实例
+        const v = new Sub({
+            el: '#app',
+            data: {
+                test: 1
+            },
+            // 检测 test 的变化
+            watch: {
+                test: function () {
+                    console.log('instance: test change')
+                }
+            }
+        })
+
+        // 修改 test 的值
+        v.test = 2
+    </script>
+    <!-- <script>
+        let obj = {
+            // a:1,
+            b: 1,
+            c: 1
+        }
+        Object.defineProperty(obj, 'a',
+            {
+                set() {
+                    obj.b++;
+                },
+                get() {
+                    obj.c++;
+
+                },
+                //   value:5, 
+            }
+        )
+        // obj.a=2;
+        console.log(obj)
+
+    </script> -->
+
+
+</body>
+
+</html>

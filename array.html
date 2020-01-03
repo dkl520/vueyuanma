@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        // 要拦截的数组变异方法
+        const mutationMethods = [
+            'push',
+            'pop',
+            'shift',
+            'unshift',
+            'splice',
+            'sort',
+            'reverse'
+        ]
+
+        const arrayMethods = Object.create(Array.prototype) // 实现 arrayMethods.__proto__ === Array.prototype
+
+        // const arrayProto = Array.prototype  // 缓存 Array.prototype
+
+
+        mutationMethods.forEach(method => {
+
+            arrayMethods[method] = function (...args) {
+
+                const result = Array.prototype[method].apply(this, args)
+
+                console.log(`执行了代理原型的 ${method} 函数`)
+
+                return result
+            }
+        })
+        const arr = []
+        const arrayKeys = Object.getOwnPropertyNames(arrayMethods);
+        // arr.__proto__ = arrayMethods
+        arrayKeys.forEach(method => {
+            // arr[method] = arrayMethods[method]
+            Object.defineProperty(arr, method, {
+                enumerable: false,
+                writable: true,
+                configurable: true,
+                value: arrayMethods[method]
+            })
+        })
+
+        //代替 __proto__
+
+
+        arr.push(1)
+        console.log([].push(1));
+
+        var student = {
+            // name: 'wujunchuan',
+            // age: 22,
+            // locate: {
+            //     country: 'china',
+            //     city: 'xiamen',
+            //     school: 'XMUT'
+            // },
+            [Symbol.iterator]: function () {
+                return {
+                    next: function () {
+                        return {
+                            value: 1,
+                            done: true
+                        }
+                    }
+                }
+            }
+        }
+        // Object.prototype[Symbol.iterator] = Array.prototype[Symbol.iterator]
+
+        for (var key of student) {
+            debugger
+            //使用Object.keys()方法获取对象key的数组
+            console.log(key);
+        }
+
+        // console.log(Object.keys(student));
+        // let Obj
+    //     let a ={
+    //         b:1,
+    //     }
+    //     function getObj(){
+    //         this.a=111;
+    //         this.b=2222;    
+    //     }
+    //     // function Object(){
+    //     //     this.c=11111111;
+    //     // }
+
+    //     Object.prototype.c=3333;
+    //     getObj.prototype={
+    //         a:1,
+    //         b:2,
+    //     };
+    //     let obj=new getObj();
+
+    //    console.log(obj.constructor,obj,obj.a,getObj.prototype.__proto__,Object.prototype.__proto__);
+
+    </script>
+
+</body>
+
+</html>

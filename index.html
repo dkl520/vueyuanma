@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+
+    <div id="app">
+
+        <ul v-for="(val,i) in arr" :key="i">
+            <li>{{val}}</li>
+        </ul>
+        {{dd}}
+        <!-- {{tt}} -->
+        {{test}}
+        <!-- {{test}}
+        {{depps.a.c}} -->
+        <button @click="change">add</button>
+    </div>
+
+    <script src="vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+    <!-- <script src="mixin.js"></script>
+    <script src="extendss.js"></script> -->
+    <script>
+        var vm = new Vue({
+            el:"#app",
+            data: {
+                test: 1,
+                tt: 2,
+                depps: {
+                    a: {
+                        c: 2
+                    }
+
+                },
+                arr: [1, 2, 3, 9]
+            },
+            // mixins: [mixin],
+            // extends: extendss,
+            // 注册两个局部指令
+            // directives: {
+            //     test1: {
+            //         bind: function () {
+            //             console.log('v-test1')
+            //         }
+            //     },
+            //     test2: function () {
+            //         console.log('v-test2')
+            //     }
+            // },
+            watch: {
+                test: function () {
+                    console.log("test changed")
+                },
+                tt: {
+                    handler() {
+                        console.log("tt");
+                    },
+                    async: true
+                },
+                depps: {
+                    handler(val) {
+                        console.log(val)
+                    },
+                    deep: true
+                }
+
+            },
+            computed: {
+                dd() {
+                    return this.test + this.tt;
+                }
+            },
+            mounted() {
+            },
+
+            created() {
+                console.log("hello")
+            },
+            methods: {
+                change() {
+                    // this.tt++;
+                    // this.test = 33;
+                    this.$nextTick(()=>{
+                          this.test=34;
+                    })
+                    let day=new Date().getDay();
+
+                    // console.log(this.tt, "ddsdsds");
+                    // this.depps.a.c=33;
+                    // this.arr.splice(0, 1, 2);
+
+                }
+            }
+        })
+        new Promise((res,rej)=>{
+             res("111")
+        }).then((val)=>{
+             console.log(val)
+        })
+        // .$mount("#app");
+    </script>
+</body>
+
+</html>

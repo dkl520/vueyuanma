@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app" v-test1 v-test2>
+
+    </div>
+
+    <script src="vue.js"></script>
+    <script src="mixin.js"></script>
+    <script src="extendss.js"></script>
+    <script>
+        const Sub = Vue.extend({
+            customOption: 1
+        })
+        // 以子类创建实例
+        const v = new Sub({
+            customOption: 2,
+            created() {
+                console.log(this.$options.customOption) // 3
+            },
+            data:{
+                h:2
+            },
+            watch:{
+              h:{
+                  handle(val){
+    
+                  },
+                 
+              }
+            }
+        })
+    </script>
+
+    <script>
+        // 子组件
+        const ChildComponent = {
+            template: '<div>child component</div>',
+            created: function () {
+                // 这里的 data 是父组件注入进来的
+                console.log(this.data)
+            },
+            inject: ['data']
+            // 注入
+        }
+
+        // 父组件
+        var vm = new Vue({
+            el: '#app',
+            // 向子组件提供数据
+            // 提供
+            provide: {
+                data: 'test provide'
+            },
+            components: {
+                ChildComponent
+            }
+        })
+    </script>
+</body>
+
+</html>

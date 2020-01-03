@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <!-- <Child-component  /> -->
+        <div>{{a}}</div>
+        <!-- <div>{{test}}</div> -->
+    </div>
+    <script src="./vue.js"></script>
+    <script>
+
+        var ChildComponent = {
+            data() {
+                return {
+                    c: 'qqqqqqq',
+                    d: [1, 2, 4, 65, 7778, 8999],
+                }
+            },
+            props: {
+                // 'ab':{
+                //     type:Number,  
+
+                // }    
+            },
+            watch: {
+                'c': function () {
+                    console.log("ccxcc", this.c)
+                },
+                // 'ab':{
+                //     handler:function(){
+
+                //     },
+                //     deep:true,
+                //     immediate:true,
+                // }
+            },
+            template: `<div>{{c}}</div>`,
+            created() {
+                console.log(this.$parent, 'aaaaa')
+
+            },
+            mounted() {
+                //    this.c=1111;
+                //    this.d.push(111)
+                // 一次watcher
+
+            },
+        }
+        var vm = new Vue({
+            el: '#app',
+            components: {
+                // 注册组件
+                // ChildComponent
+            },
+            data: {
+                test: 2121,
+                a:111,
+            },
+            watch:{
+                'a':{
+                    handler:function(){
+                         console.log("aaaaaaa")
+                    },
+                },
+                'test':{
+                    handler:function(){
+                         console.log("aaaaaaa")
+                    },
+                },
+            },
+            mounted() {
+                this.a = 2222;
+                // console.log(this.a, 'aaaaaaaaaaaaaa');
+                // console.log(this);
+            },
+        })
+        // console.log(vm.$options.components.ChildComponent.created())
+    </script>
+</body>
+
+</html>
