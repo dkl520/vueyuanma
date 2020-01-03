@@ -517,7 +517,6 @@
     }
   }
 
-
   /*  */
 
   // can we use __proto__?
@@ -980,7 +979,6 @@
    * Observe a list of Array items.
    */
   // 观测数组
-
   Observer.prototype.observeArray = function observeArray(items) {
     for (var i = 0, l = items.length; i < l; i++) {
       observe(items[i]);
@@ -1052,7 +1050,6 @@
     var dep = new Dep();
     // 属于闭包操作 
     // 当调用Object.defineProperty(obj, key, {
-
     // 时候 会对dep对象赋值和触发操作=>即 对watcher进行加入 和触发回调函数等操作
     var property = Object.getOwnPropertyDescriptor(obj, key);
 
@@ -1079,7 +1076,6 @@
         if (Dep.target) {
           // 收集当前key值的watcher
           dep.depend();
-
           // 收集依赖 ，即把watcher对象进入dep中  
           if (childOb) {
             childOb.dep.depend();
@@ -1924,7 +1920,6 @@
     var channel = new MessageChannel();
 
     var port = channel.port2;
-
     channel.port1.onmessage = flushCallbacks;
     macroTimerFunc = function () {
       port.postMessage(1);
@@ -3135,7 +3130,6 @@
   var has = {};
   var circular = {};
   var waiting = false;
-
   var flushing = false;
   var index = 0;
   /**
@@ -3189,7 +3183,6 @@
         }
       }
     }
-
     // keep copies of post queues before resetting state
     var activatedQueue = activatedChildren.slice();
     var updatedQueue = queue.slice();
@@ -3269,7 +3262,6 @@
         }
         queue.splice(i + 1, 0, watcher);
       }
-
       // queue the flush
       if (!waiting) {
         waiting = true;
@@ -3294,7 +3286,6 @@
   var Watcher = function Watcher(vm, expOrFn, cb, options, isRenderWatcher) {
     this.vm = vm;
     // isRenderWatcher 标识着是否是渲染函数的观察者
-
     if (isRenderWatcher) {
       vm._watcher = this;
     }
@@ -3359,7 +3350,6 @@
     // 法，它的作用可以用两个字描述：求值。求值的目的有两个，第一个是能够触发访问器属性的
     //  get 拦截器函数，第二个是能够获得被观察目标的值
     pushTarget(this);
-
     //  把当前的watcher设置为dep.target;
     var value;
     var vm = this.vm;
@@ -3435,7 +3425,6 @@
     } else if (this.sync) {
       // 表示数据同步更新；
       this.run();
-
 
     } else {
       // 加入队列  异步更新。。
@@ -11237,7 +11226,6 @@
       // 返回一个由对象构成的数组s
 
       // render函数的生成地址
-
 
 
 

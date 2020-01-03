@@ -40,23 +40,37 @@
         })
     </script>
 
+<<<<<<< HEAD
     <script>
+=======
+    <!-- <script>
+>>>>>>> 9cee64e188e0829221bd5e80bd6958eb1b1b9da9
         // 子组件
         const ChildComponent = {
             template: '<div>child component</div>',
             created: function () {
+<<<<<<< HEAD
+=======
+                debugger
+>>>>>>> 9cee64e188e0829221bd5e80bd6958eb1b1b9da9
                 // 这里的 data 是父组件注入进来的
                 console.log(this.data)
             },
             inject: ['data']
+<<<<<<< HEAD
             // 注入
+=======
+>>>>>>> 9cee64e188e0829221bd5e80bd6958eb1b1b9da9
         }
 
         // 父组件
         var vm = new Vue({
             el: '#app',
             // 向子组件提供数据
+<<<<<<< HEAD
             // 提供
+=======
+>>>>>>> 9cee64e188e0829221bd5e80bd6958eb1b1b9da9
             provide: {
                 data: 'test provide'
             },
@@ -64,7 +78,11 @@
                 ChildComponent
             }
         })
+<<<<<<< HEAD
     </script>
+=======
+    </script> -->
+>>>>>>> 9cee64e188e0829221bd5e80bd6958eb1b1b9da9
 </body>
 
 </html>

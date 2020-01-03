@@ -3228,7 +3228,6 @@
         }
       }
     }
-
     // keep copies of post queues before resetting state
     var activatedQueue = activatedChildren.slice();
     var updatedQueue = queue.slice();
